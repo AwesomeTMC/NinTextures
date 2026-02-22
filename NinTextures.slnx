@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="binary_stream/BinaryStream/BinaryStream.csproj" />
+  <Project Path="NinTextures/NinTextures.csproj" />
+  <Project Path="TestingProgram/TestingProgram.csproj" Id="88ab1fcf-ee16-4bd8-91b0-75f3cf0b4b14" />
+</Solution>
