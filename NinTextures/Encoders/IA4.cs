@@ -32,8 +32,8 @@ namespace NinTextures
                         continue;
                     }
                     byte val = reader.ReadUInt8();
-                    byte gray = (byte)(val >> 4);
-                    byte alpha = (byte)(val & 0xF);
+                    byte alpha = (byte)(val >> 4);
+                    byte gray = (byte)(val & 0xF);
                     // Scale 4-bit value to 8-bit
                     gray = (byte)(gray * 0x11);
                     alpha = (byte)(alpha * 0x11);
@@ -64,8 +64,8 @@ namespace NinTextures
                         continue;
                     }
                     Rgba32 pixel = image[x, y];
-                    byte high = (byte)(pixel.R >> 4);
-                    byte low = (byte)(pixel.A >> 4);
+                    byte high = (byte)(pixel.A / 0x11);
+                    byte low = (byte)(pixel.R / 0x11);
                     byte packed = (byte)((high << 4) | (low & 0xF));
                     writer.WriteUInt8(packed);
                 }

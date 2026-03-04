@@ -61,8 +61,9 @@ namespace NinTextures
             MagFilterType = reader.ReadUInt8();
             MinLOD = (byte)(reader.ReadUInt8() / 8);
             var mipmapCount = (byte)(reader.ReadUInt8() / 8); // technically MaxLOD
-            if (reader.ReadUInt8() != mipmapCount + 1)
-                throw new InvalidDataException("Image count is not the same as mipmap count + 1");
+            var imgCount = reader.ReadUInt8();
+            if (imgCount != mipmapCount + 1)
+                Debug.WriteLine("WARNING! Image count ("+ imgCount + ") is not the same as mipmap count + 1 (" + (mipmapCount + 1) + ")! Relying on mipmap count.");
             reader.Skip(1);
             LODBias = (ushort)(reader.ReadUInt16() / 100);
             var imageDataOffset = reader.ReadUInt32();

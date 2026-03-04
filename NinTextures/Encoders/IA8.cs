@@ -32,8 +32,8 @@ namespace NinTextures
                         reader.Skip(2);
                         continue;
                     }
-                    byte gray = reader.ReadUInt8();
                     byte alpha = reader.ReadUInt8();
+                    byte gray = reader.ReadUInt8();
                     image[x, y] = new Rgba32(gray, gray, gray, alpha);
                 }
             }
@@ -62,8 +62,8 @@ namespace NinTextures
                     }
                     byte gray = image[x, y].R;
                     byte alpha = image[x, y].A;
-                    writer.WriteUInt8(gray);
                     writer.WriteUInt8(alpha);
+                    writer.WriteUInt8(gray);
                 }
             }
 
@@ -76,8 +76,8 @@ namespace NinTextures
             List<Rgba32> palette = new List<Rgba32>(count);
             for (int i = 0; i < count; i++)
             {
-                byte gray = reader.ReadUInt8();
                 byte alpha = reader.ReadUInt8();
+                byte gray = reader.ReadUInt8();
                 palette.Add(new Rgba32(gray, gray, gray, alpha));
             }
             return palette;
@@ -89,8 +89,8 @@ namespace NinTextures
             {
                 byte gray = color.R;
                 byte alpha = color.A;
-                writer.WriteUInt8(gray);
                 writer.WriteUInt8(alpha);
+                writer.WriteUInt8(gray);
             }
         }
     }

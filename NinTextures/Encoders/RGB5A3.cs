@@ -2,6 +2,7 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Diagnostics;
+using System.Drawing;
 
 namespace NinTextures
 {
@@ -32,27 +33,7 @@ namespace NinTextures
                         reader.Skip(2);
                         continue;
                     }
-                    ushort color = reader.ReadUInt16();
-                    var hasAlpha = (color & 0x8000) == 0;
-                    byte r, g, b, a;
-                    if (hasAlpha)
-                    {
-                        // 0AAARRRRGGGGBBBB
-                        a = (byte)(((color >> 12) & 0x7) * 0x20); // AAA
-                        r = (byte)(((color >> 8) & 0xF) * 0x11); // RRRR
-                        g = (byte)(((color >> 4) & 0xF) * 0x11); // GGGG
-                        b = (byte)((color & 0xF) * 0x11); // BBBB
-                    }
-                    else
-                    {
-                        // 1RRRRRGGGGGBBBBB
-                        a = 0xFF;
-                        r = (byte)(((color >> 10) & 0x1F) * 8); // RRRRR
-                        g = (byte)(((color >> 5) & 0x1F) * 8); // GGGGG
-                        b = (byte)((color & 0x1F) * 8); // BBBBB
-                    }
-
-                    image[x, y] = new Rgba32(r, g, b, a);
+                    image[x, y] = DecodePixel(reader);
                 }
             }
 
@@ -78,25 +59,7 @@ namespace NinTextures
                         writer.WriteUInt16(0);
                         continue;
                     }
-                    Rgba32 pixel = image[x, y];
-                    ushort color;
-                    if (pixel.A < 0xFF)
-                    {
-                        // 0AAARRRRGGGGBBBB
-                        color = (ushort)(((pixel.A / 0x20) << 12) | // AAA
-                            ((pixel.R / 0x11) << 8) | // RRRR
-                            ((pixel.G / 0x11) << 4) | // GGGG
-                            (pixel.B / 0x11)); // BBBB
-                    }
-                    else
-                    {
-                        // 1RRRRRGGGGGBBBBB
-                        color = (ushort)(0x8000 | // 1
-                            ((pixel.R / 8) << 10) | // RRRRR
-                            ((pixel.G / 8) << 5) | // GGGGG
-                            (pixel.B / 8)); // BBBBB
-                    }
-                    writer.WriteUInt16(color);
+                    writer.WriteUInt16(EncodePixel(image[x, y]));
                 }
             }
 
@@ -109,26 +72,7 @@ namespace NinTextures
             List<Rgba32> palette = new List<Rgba32>(count);
             for (int i = 0; i < count; i++)
             {
-                ushort color = reader.ReadUInt16();
-                var hasAlpha = (color & 0x8000) == 0;
-                byte r, g, b, a;
-                if (hasAlpha)
-                {
-                    // 0AAARRRRGGGGBBBB
-                    a = (byte)(((color >> 12) & 0x7) * 0x20); // AAA
-                    r = (byte)(((color >> 8) & 0xF) * 0x11); // RRRR
-                    g = (byte)(((color >> 4) & 0xF) * 0x11); // GGGG
-                    b = (byte)((color & 0xF) * 0x11); // BBBB
-                }
-                else
-                {
-                    // 1RRRRRGGGGGBBBBB
-                    a = 0xFF;
-                    r = (byte)(((color >> 10) & 0x1F) * 8); // RRRRR
-                    g = (byte)(((color >> 5) & 0x1F) * 8); // GGGGG
-                    b = (byte)((color & 0x1F) * 8); // BBBBB
-                }
-                palette.Add(new Rgba32(r, g, b, a));
+                palette.Add(DecodePixel(reader));
             }
             return palette;
         }
@@ -137,25 +81,63 @@ namespace NinTextures
         {
             foreach (var color in palette)
             {
-                ushort encoded;
-                if (color.A < 0xFF)
-                {
-                    // 0AAARRRRGGGGBBBB
-                    encoded = (ushort)(((color.A / 0x20) << 12) | // AAA
-                        ((color.R / 0x11) << 8) | // RRRR
-                        ((color.G / 0x11) << 4) | // GGGG
-                        (color.B / 0x11)); // BBBB
-                }
-                else
-                {
-                    // 1RRRRRGGGGGBBBBB
-                    encoded = (ushort)(0x8000 | // 1
-                        ((color.R / 8) << 10) | // RRRRR
-                        ((color.G / 8) << 5) | // GGGGG
-                        (color.B / 8)); // BBBBB
-                }
-                writer.WriteUInt16(encoded);
+                EncodePixel(color, writer);
             }
+        }
+
+        public static void EncodePixel(Rgba32 color, BinaryStream writer)
+        {
+            writer.WriteUInt16(EncodePixel(color));
+        }
+
+        public static ushort EncodePixel(Rgba32 color)
+        {
+            ushort encoded;
+            if (color.A < 0xFF)
+            {
+                // 0AAARRRRGGGGBBBB
+                encoded = (ushort)(((color.A / 0x20) << 12) | // AAA
+                    ((color.R / 0x11) << 8) | // RRRR
+                    ((color.G / 0x11) << 4) | // GGGG
+                    (color.B / 0x11)); // BBBB
+            }
+            else
+            {
+                // 1RRRRRGGGGGBBBBB
+                encoded = (ushort)(0x8000 | // 1
+                    ((color.R / 8) << 10) | // RRRRR
+                    ((color.G / 8) << 5) | // GGGGG
+                    (color.B / 8)); // BBBBB
+            }
+            return encoded;
+        }
+
+        public static Rgba32 DecodePixel(BinaryStream reader)
+        {
+            return DecodePixel(reader.ReadUInt16());
+        }
+
+        public static Rgba32 DecodePixel(ushort color)
+        {
+            var hasAlpha = (color & 0x8000) == 0;
+            byte r, g, b, a;
+            if (hasAlpha)
+            {
+                // 0AAARRRRGGGGBBBB
+                a = (byte)(((color >> 12) & 0x7) * 0x20); // AAA
+                r = (byte)(((color >> 8) & 0xF) * 0x11); // RRRR
+                g = (byte)(((color >> 4) & 0xF) * 0x11); // GGGG
+                b = (byte)((color & 0xF) * 0x11); // BBBB
+            }
+            else
+            {
+                // 1RRRRRGGGGGBBBBB
+                a = 0xFF;
+                r = (byte)(((color >> 10) & 0x1F) * 8); // RRRRR
+                g = (byte)(((color >> 5) & 0x1F) * 8); // GGGGG
+                b = (byte)((color & 0x1F) * 8); // BBBBB
+            }
+            return new Rgba32(r, g, b, a);
         }
     }
 }
