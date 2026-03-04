@@ -160,7 +160,7 @@ namespace NinTextures
             {
                 TPLImage image = Images[i];
                 using BinaryStream imageData = new BinaryStream(writer.Endian);
-                List<Rgba32> palette = Util.EncodeTexture(imageData, image.Image, image.Format);
+                List<Rgba32> palette = Util.EncodeTexture(imageData, image.Image, image.Format, image.PaletteFormat);
                 uint paletteHeaderOffset = 0;
                 if (Util.IsPaletteTexture(image.Format))
                 {

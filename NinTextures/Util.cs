@@ -83,16 +83,16 @@ namespace NinTextures
             }
         }
 
-        public static List<Rgba32> EncodeTexture(BinaryStream writer, Image<Rgba32> image, ImageFormat format)
+        public static List<Rgba32> EncodeTexture(BinaryStream writer, Image<Rgba32> image, ImageFormat format, PaletteFormat paletteFormat)
         {
             switch (format)
             {
                 case ImageFormat.C4:
-                    return PaletteTextureEncoder<C4>.Encode(writer, image);
+                    return PaletteTextureEncoder<C4>.Encode(writer, image, paletteFormat);
                 case ImageFormat.C8:
-                    return PaletteTextureEncoder<C8>.Encode(writer, image);
+                    return PaletteTextureEncoder<C8>.Encode(writer, image, paletteFormat);
                 case ImageFormat.C14X2:
-                    return PaletteTextureEncoder<C14X2>.Encode(writer, image);
+                    return PaletteTextureEncoder<C14X2>.Encode(writer, image, paletteFormat);
                 case ImageFormat.CMPR:
                     TextureEncoder<CMPR>.Encode(writer, image);
                     break;
@@ -150,6 +150,21 @@ namespace NinTextures
                 }
             }
             return uniqueColors;
+        }
+
+        public static Rgba32 ReformatPixel(Rgba32 pixel, PaletteFormat paletteFormat)
+        {
+            switch (paletteFormat)
+            {
+                case PaletteFormat.IA8:
+                    return new Rgba32(pixel.R, pixel.R, pixel.R, pixel.A);
+                case PaletteFormat.RGB565:
+                    return RGB565.DecodePixel(RGB565.EncodePixel(pixel));
+                case PaletteFormat.RGB5A3:
+                    return RGB5A3.DecodePixel(RGB5A3.EncodePixel(pixel));
+                default:
+                    throw new ArgumentException("Palette format " + paletteFormat + " is not a valid palette format!");
+            }
         }
     }
 }

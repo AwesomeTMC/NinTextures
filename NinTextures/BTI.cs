@@ -95,7 +95,7 @@ namespace NinTextures
 
             List<Rgba32> palette = new();
             BinaryStream imageData = new BinaryStream(stream.Endian);
-            palette = Util.EncodeTexture(imageData, Image, Format);
+            palette = Util.EncodeTexture(imageData, Image, Format, PaletteFormat);
             var startPos = stream.Position;
             stream.WriteUInt8((byte)Format);
             stream.WriteBool(EnableAlpha);
@@ -123,7 +123,7 @@ namespace NinTextures
             imageData.WriteTo(stream);
             for (int i = 0; i < Mipmaps.Count; i++)
             {
-                Util.EncodeTexture(stream, Mipmaps[i], Format);
+                Util.EncodeTexture(stream, Mipmaps[i], Format, PaletteFormat);
             }
 
             

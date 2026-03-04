@@ -45,7 +45,7 @@ namespace NinTextures
         static abstract int BlockHeight { get; }
         static abstract int MaxColors { get; }
         static abstract void DecodeBlock(BinaryStream reader, Image<Rgba32> image, int startX, int startY, List<Rgba32> palette);
-        static abstract void EncodeBlock(BinaryStream writer, Image<Rgba32> image, int startX, int startY, List<Rgba32> uniqueColors);
+        static abstract void EncodeBlock(BinaryStream writer, Image<Rgba32> image, int startX, int startY, List<Rgba32> uniqueColors, PaletteFormat paletteFormat);
     }
     public static class TextureEncoder<T> where T : ITexture
     {
@@ -95,7 +95,7 @@ namespace NinTextures
             }
             return image;
         }
-        public static List<Rgba32> Encode(BinaryStream writer, Image<Rgba32> image, List<Rgba32>? uniqueColors = null)
+        public static List<Rgba32> Encode(BinaryStream writer, Image<Rgba32> image, PaletteFormat paletteFormat, List<Rgba32>? uniqueColors = null)
         {
             if (uniqueColors == null)
                 uniqueColors = new List<Rgba32>();
@@ -105,16 +105,17 @@ namespace NinTextures
             {
                 for (int bx = 0; bx < blocksX; bx++)
                 {
-                    T.EncodeBlock(writer, image, bx * T.BlockWidth, by * T.BlockHeight, uniqueColors);
+                    T.EncodeBlock(writer, image, bx * T.BlockWidth, by * T.BlockHeight, uniqueColors, paletteFormat);
                 }
             }
-            return uniqueColors.ToList();
+            return uniqueColors;
         }
-        public static int EncodeIndex(Image<Rgba32> image, List<Rgba32> uniqueColors, int x, int y)
+
+        public static int EncodeIndex(Image<Rgba32> image, List<Rgba32> uniqueColors, PaletteFormat paletteFormat, int x, int y)
         {
             if (x >= image.Width || y >= image.Height)
                 return -1;
-            Rgba32 pixel = image[x, y];
+            Rgba32 pixel = Util.ReformatPixel(image[x, y], paletteFormat);
             var index = uniqueColors.IndexOf(pixel);
             if (index == -1)
             {

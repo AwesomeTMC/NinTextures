@@ -45,7 +45,7 @@ namespace NinTextures
             // Account for any bytes we skipped over in the block
             reader.Position = startPos + BlockSize;
         }
-        public static void EncodeBlock(BinaryStream writer, Image<Rgba32> image, int startX, int startY, List<Rgba32> uniqueColors)
+        public static void EncodeBlock(BinaryStream writer, Image<Rgba32> image, int startX, int startY, List<Rgba32> uniqueColors, PaletteFormat paletteFormat)
         {
             long startPos = writer.Position;
             writer.Write(new byte[BlockSize]); // Reserve space for the block
@@ -58,11 +58,11 @@ namespace NinTextures
             {
                 for (int x = startX; x < endX; x += 2)
                 {
-                    byte high = (byte)PaletteTextureEncoder<C4>.EncodeIndex(image, uniqueColors, x, y);
+                    byte high = (byte)PaletteTextureEncoder<C4>.EncodeIndex(image, uniqueColors, paletteFormat, x, y);
                     byte low = 0;
                     if (x + 1 < startX + BlockWidth)
                     {
-                        low = (byte)(PaletteTextureEncoder<C4>.EncodeIndex(image, uniqueColors, x + 1, y));
+                        low = (byte)(PaletteTextureEncoder<C4>.EncodeIndex(image, uniqueColors, paletteFormat, x + 1, y));
                     }
 
                     byte packed = (byte)((high << 4) | (low & 0xF));
