@@ -62,7 +62,7 @@ namespace NinTextures
             {
                 for (int x = startX; x < endX; x += 2)
                 {
-                    if (x >= image.Width)
+                    if (x >= image.Width || y >= image.Height)
                     {
                         writer.WriteUInt8(0);
                         continue;
