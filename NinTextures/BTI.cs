@@ -49,7 +49,7 @@ namespace NinTextures
             ushort height = reader.ReadUInt16();
             WrapS = reader.ReadUInt8();
             WrapT = reader.ReadUInt8();
-            reader.Skip(1);
+            bool paletteEnabled = reader.ReadBool();
             PaletteFormat = (PaletteFormat)reader.ReadUInt8();
             ushort paletteEntryCount = reader.ReadUInt16();
             var paletteDataOffset = reader.ReadUInt32();
@@ -103,8 +103,17 @@ namespace NinTextures
             stream.WriteUInt16((ushort)Image.Height);
             stream.WriteUInt8(WrapS);
             stream.WriteUInt8(WrapT);
-            stream.WriteUInt16((ushort)PaletteFormat);
-            stream.WriteUInt16((ushort)palette.Count);
+            bool isPalette = palette.Count > 0; // EncodeTexture will return an empty list if it's not a palette format.
+            if (isPalette)
+            {
+                stream.WriteBool(true);
+                stream.WriteUInt8((byte)PaletteFormat);
+                stream.WriteUInt16((ushort)palette.Count);
+            }
+            else
+            {
+                stream.WriteUInt32(0);
+            }
             stream.WriteUInt32(0);
             stream.WriteBool(Mipmaps.Count > 0);
             stream.WriteBool(EnableEdgeLOD);
@@ -127,7 +136,7 @@ namespace NinTextures
             }
 
             
-            if (palette.Count > 0)
+            if (isPalette && palette.Count > 0)
             {
                 // Write Palette Data Offset
                 var paletteDataPosition = stream.Position;
